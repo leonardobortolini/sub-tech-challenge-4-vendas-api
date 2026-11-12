@@ -1,0 +1,31 @@
+services:
+  api:
+    build: .
+    container_name: vendas-api
+    ports:
+      - "8001:8000"
+    environment:
+      DATABASE_URL: postgresql+psycopg://vendas:vendas@db:5432/vendas
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    container_name: vendas-db
+    environment:
+      POSTGRES_USER: vendas
+      POSTGRES_PASSWORD: vendas
+      POSTGRES_DB: vendas
+    ports:
+      - "5433:5432"
+    volumes:
+      - vendas_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vendas -d vendas"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  vendas_data:
