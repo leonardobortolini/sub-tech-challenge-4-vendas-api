@@ -1,10 +1,12 @@
 from fastapi import FastAPI
 
 from app.interfaces.rotas.compra import compras_router
+from app.interfaces.rotas.veiculo import veiculos_router
 
 app = FastAPI(title="Vendas API")
 
 app.include_router(compras_router)
+app.include_router(veiculos_router)
 
 
 @app.get("/health", tags=["Health"])
