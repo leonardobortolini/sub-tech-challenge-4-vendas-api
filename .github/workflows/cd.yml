@@ -1,0 +1,60 @@
+name: CD
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Docker Build and Health Check
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Create shared Docker network
+        run: docker network create microsservicos
+
+      - name: Build and start containers
+        run: docker compose up -d --build
+
+      - name: Wait for API health check
+        run: |
+          for i in $(seq 1 30); do
+            if curl --fail --silent http://localhost:8001/health; then
+              echo ""
+              echo "Vendas API is healthy!"
+              exit 0
+            fi
+
+            echo "Waiting for Vendas API... attempt $i/30"
+            sleep 2
+          done
+
+          echo "Health check failed!"
+          exit 1
+
+      - name: Show running containers
+        if: success()
+        run: docker compose ps
+
+      - name: Show logs on failure
+        if: failure()
+        run: docker compose logs --no-color || true
+
+      - name: Cleanup containers and network
+        if: always()
+        run: |
+          docker compose down -v --remove-orphans || true
+          docker network rm microsservicos || true
