@@ -6,9 +6,15 @@ services:
       - "8001:8000"
     environment:
       DATABASE_URL: postgresql+psycopg://vendas:vendas@db:5432/vendas
+      VEICULOS_API_URL: http://veiculos-api:8000
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      default: {}
+      microsservicos:
+        aliases:
+          - vendas-api
 
   db:
     image: postgres:16-alpine
@@ -29,3 +35,8 @@ services:
 
 volumes:
   vendas_data:
+
+networks:
+  microsservicos:
+    external: true
+    name: microsservicos
