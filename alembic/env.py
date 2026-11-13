@@ -1,4 +1,3 @@
-
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config, pool
@@ -6,6 +5,7 @@ from sqlalchemy import engine_from_config, pool
 from alembic import context
 from app.infrastructure.config import configuracoes
 from app.infrastructure.database import Base
+from app.infrastructure.models import venda  # noqa: F401
 
 config = context.config
 
